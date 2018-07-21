@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">FanMe</string>
+    <string name="action_settings">Settings</string>
+    <string name="arrowsize">24</string>
+</resources>
