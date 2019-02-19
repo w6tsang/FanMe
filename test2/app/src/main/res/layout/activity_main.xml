@@ -226,71 +226,40 @@
                 android:layout_weight="1"
                 tools:layout_editor_absoluteY="84dp" />
 
-            <SeekBar
-                android:id="@+id/sb_speedControl"
-                style="@style/Widget.AppCompat.SeekBar.Discrete"
-                android:layout_width="250dp"
+            <RelativeLayout
+                android:id="@+id/linearLayout1"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:max="3"
-                android:progress="0" />
+                android:gravity="center"
+                android:orientation="horizontal">
 
-            <TableLayout
-                android:layout_width="250dp"
-                android:layout_height="match_parent"
-                android:layout_above="@+id/sb_task_detail_status"
-                android:layout_alignStart="@+id/sb_task_detail_status"
-                android:layout_gravity="center"
-                android:stretchColumns="*">
+                <Button
+                    android:id="@+id/btn_dec"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/ic_remove_circle_black_24dp"
+                    android:layout_marginRight="6dp"/>/>
 
-                <TableRow
-                    android:id="@+id/statusRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                <include
+                    layout="@layout/circle_num"
+                    android:id="@+id/text_circle"
+                    android:layout_width="36dp"
+                    android:layout_weight="1"
+                    android:layout_height="36dp"
+                    android:layout_toRightOf="@+id/btn_dec"
+                    android:layout_marginRight="6dp"></include>
 
-                    <TextView
-                        android:id="@+id/tv_task_status_newly_developed"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_column="0"
-                        android:layout_weight="1"
-                        android:text="Off"
-                        android:textSize="10sp" />
+                <Button
+                    android:id="@+id/btn_inc"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginLeft="0dp"
+                    android:layout_toRightOf="@+id/text_circle"
+                    android:layout_weight="1"
+                    android:background="@drawable/ic_add_circle_black_24dp" />/>
+            </RelativeLayout>
 
-                    <TextView
-                        android:id="@+id/tv_task_status_developed"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_column="1"
-                        android:layout_weight="1"
-                        android:text="Slow"
-                        android:textSize="10sp" />
-
-                    <TextView
-                        android:id="@+id/tv_task_status_in_progress"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_column="2"
-                        android:layout_weight="1"
-                        android:text="Medium"
-
-                        android:textSize="10sp" />
-
-                    <TextView
-                        android:id="@+id/tv_task_status_completed"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_column="3"
-                        android:layout_weight="1"
-                        android:text="Fast"
-
-                        android:textSize="10sp" />
-
-                </TableRow>
-
-            </TableLayout>
         </LinearLayout>
 
         <Button

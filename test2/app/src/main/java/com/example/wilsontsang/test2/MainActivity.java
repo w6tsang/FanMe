@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -47,6 +48,10 @@ public class MainActivity extends AppCompatActivity {
     Button btnManual;
     Button btnAuto;
 
+    Button btnInc;
+    Button btnDec;
+    Button btnOnOff;
+
     TextView humid;
     TextView lblManual;
     ListView devicelist;
@@ -54,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     TextView status;
     private BluetoothSocket mBTSocket = null; // bi-directional client-to-client data path
     private Handler mHandler;
+    private Handler mOutHandler;
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // "random" unique identifier
 
     String address;
@@ -84,13 +90,21 @@ public class MainActivity extends AppCompatActivity {
         status = (TextView)findViewById(R.id.connected);
         lblManual = (TextView)findViewById(R.id.txt_manual);
         btnUp = (Button)findViewById(R.id.btn_up);
-        speedControl = (SeekBar)findViewById(R.id.sb_speedControl);
+        //speedControl = (SeekBar)findViewById(R.id.sb_speedControl);
 
         btnAuto = (RadioButton)findViewById(R.id.btn_Auto);
         btnManual = (RadioButton)findViewById(R.id.btn_Manual);
 
+        btnInc = (Button)findViewById(R.id.btn_inc);
+        btnDec = (Button)findViewById(R.id.btn_dec);
+        btnOnOff = (Button) findViewById(R.id.text_circle);
+
         //Check Bluetooth
         myBluetooth = BluetoothAdapter.getDefaultAdapter();
+
+        int currentSpeed = 0;
+        int maxSpeed = 6;
+
         if(myBluetooth == null)
         {
             //Show a mensag. that thedevice has no bluetooth adapter
@@ -131,6 +145,12 @@ public class MainActivity extends AppCompatActivity {
                     else
                         status.setText("Connection Failed");
                 }
+            }
+        };
+
+        mOutHandler = new Handler(){
+            public void handleMessage(android.os.Message msg){
+                mConnectedThread.write((String)msg.obj);
             }
         };
 
@@ -223,39 +243,37 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-        speedControl.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        btnInc.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if(isConnected){
-                    switch (i){
-                        case 0:
-                            mConnectedThread.write("off");
-                            break;
-                        case 1:
-                            mConnectedThread.write("slow");
-                            break;
-                        case 2:
-                            mConnectedThread.write("medium");
-                            break;
-                        case 3:
-                            mConnectedThread.write("fast");
-                            break;
-                        default:
-                            return;
-                    }
-                    Toast.makeText(getApplicationContext(), "Sent Speed" + i, Toast.LENGTH_SHORT).show();
+            public void onClick(View v)
+            {
+                if(isConnected && currentSpeed < maxSpeed){
+                    mConnectedThread.write("inc");
+                    Toast.makeText(getApplicationContext(), "Sent Increment", Toast.LENGTH_SHORT).show();
                 }
             }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
+        });
 
+        //buttons
+        btnDec.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                if(isConnected && 0 < currentSpeed){
+                    mConnectedThread.write("dec");
+                    Toast.makeText(getApplicationContext(), "Sent Decrement", Toast.LENGTH_SHORT).show();
+                }
             }
+        });
 
+        //buttons
+        btnOnOff.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
+            public void onClick(View view) {
+                if(isConnected ){
+                    mConnectedThread.write("toggle");
+                    Toast.makeText(getApplicationContext(), "Sent Toggle", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
