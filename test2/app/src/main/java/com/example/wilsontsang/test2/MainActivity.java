@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         }
         mHandler = new Handler(){
             public void handleMessage(android.os.Message msg){
-                if(msg.what == MESSAGE_READ){//reciver
+                if(msg.what == MESSAGE_READ){//receiver
                     String readMessage = null;
                     try {
                         readMessage = new String((byte[]) msg.obj, "UTF-8");
@@ -210,17 +210,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
-        });
-
-        //buttons
-        btnLeft.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                if(isConnected){
-                    mConnectedThread.write("left");
-                    Toast.makeText(getApplicationContext(), "Sent LEFT", Toast.LENGTH_SHORT).show();
-                }
-            }
         });
 
         //buttons
