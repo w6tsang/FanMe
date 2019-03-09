@@ -36,8 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int REQUEST_CONNECT_DEVICE_INSECURE = 2;
     private static final int REQUEST_ENABLE_BT = 3;
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
-
-    private BluetoothAdapter myBluetooth = null;
+    
     private Set<BluetoothDevice> pairedDevices;
     boolean isItemSelected;
 
@@ -80,9 +79,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setSupportActionBar(toolbar);
 
         //Check Bluetooth
-        myBluetooth = BluetoothAdapter.getDefaultAdapter();
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        if(myBluetooth == null)
+        if(mBluetoothAdapter == null)
         {
             //Show a mensag. that thedevice has no bluetooth adapter
             Toast.makeText(getApplicationContext(), "Bluetooth Device Not Available", Toast.LENGTH_LONG).show();
@@ -196,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         devicelist.setAdapter(BTArrayAdapter);
 
         // get paired devices
-        pairedDevices = myBluetooth.getBondedDevices();
+        pairedDevices = mBluetoothAdapter.getBondedDevices();
         isItemSelected = false;
         // put it's one to the adapter
         for (BluetoothDevice device : pairedDevices)
@@ -223,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         devicelist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                if (!myBluetooth.isEnabled()) {
+                if (!mBluetoothAdapter.isEnabled()) {
                     makeToast("Bluetooth not On");
                     return;
                 }
