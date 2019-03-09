@@ -48,10 +48,11 @@
 
 
             <Button
-                android:id="@+id/Btn_ConnectBlueTooth"
+                android:id="@+id/btn_ConnectBlueTooth"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Connect" />
+                android:text="@string/title_connecting"
+                android:onClick="onClick"/>
 
             <ScrollView
                 android:layout_width="match_parent"
@@ -81,7 +82,7 @@
                     android:id="@+id/connected"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=" Bluetooth Connected" />
+                    android:text="@string/not_connected" />
 
             </LinearLayout>
 
@@ -107,13 +108,13 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/connected"
+                    android:id="@+id/temperature"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Set Temperature: " />
 
                 <EditText
-                    android:id="@+id/editText3"
+                    android:id="@+id/set_temp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -154,7 +155,9 @@
                         android:button="@null"
                         android:gravity="center"
                         android:text="Manual"
-                        android:textColor="@color/white" />
+                        android:textColor="@color/white"
+                        android:tag = "@string/bt_manual"
+                        android:onClick="onClick"/>
 
                     <RadioButton
                         android:id="@+id/btn_Auto"
@@ -168,7 +171,9 @@
                         android:button="@null"
                         android:gravity="center"
                         android:text="Auto"
-                        android:textColor="@color/white" />
+                        android:textColor="@color/white"
+                        android:tag = "@string/bt_auto"
+                        android:onClick="onClick"/>
                 </RadioGroup>
 
                 <Space
@@ -189,7 +194,7 @@
                     tools:layout_editor_absoluteY="510dp">
 
                     <RadioButton
-                        android:id="@+id/search"
+                        android:id="@+id/mode_hot"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_marginBottom="1dp"
@@ -200,10 +205,12 @@
                         android:button="@null"
                         android:gravity="center"
                         android:text="Hot"
-                        android:textColor="@color/white" />
+                        android:textColor="@color/white"
+                        android:tag = "@string/bt_hot"
+                        android:onClick="onClick"/>
 
                     <RadioButton
-                        android:id="@+id/offer"
+                        android:id="@+id/mode_cold"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_marginBottom="1dp"
@@ -214,7 +221,9 @@
                         android:button="@null"
                         android:gravity="center"
                         android:text="Cold"
-                        android:textColor="@color/white" />
+                        android:textColor="@color/white"
+                        android:tag="@string/bt_cold"
+                        android:onClick="onClick"/>
                 </RadioGroup>
 
             </LinearLayout>
@@ -239,7 +248,9 @@
                     android:layout_height="36dp"
                     android:layout_weight="1"
                     android:background="@drawable/ic_remove_circle_black_24dp"
-                    android:layout_marginRight="6dp"/>/>
+                    android:layout_marginRight="6dp"
+                    android:tag = "@string/bt_speed_down"
+                    android:onClick="onClick"/>/>
 
                 <include
                     layout="@layout/circle_num"
@@ -257,7 +268,9 @@
                     android:layout_marginLeft="0dp"
                     android:layout_toRightOf="@+id/text_circle"
                     android:layout_weight="1"
-                    android:background="@drawable/ic_add_circle_black_24dp" />/>
+                    android:background="@drawable/ic_add_circle_black_24dp"
+                    android:tag = "@string/bt_speed_up"
+                    android:onClick="onClick"/>/>
             </RelativeLayout>
 
         </LinearLayout>
@@ -272,7 +285,9 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.497"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+            android:tag = "@string/bt_up"
+            android:onClick="onClick"/>
 
         <Button
             android:id="@+id/btn_down"
@@ -284,7 +299,9 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.497"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btn_up" />
+            app:layout_constraintTop_toBottomOf="@+id/btn_up"
+            android:tag = "@string/bt_down"
+            android:onClick="onClick"/>
 
         <Button
             android:id="@+id/btn_left"
@@ -298,7 +315,9 @@
             app:layout_constraintHorizontal_bias="0.132"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/btn_up"
-            app:layout_constraintVertical_bias="0.764" />
+            app:layout_constraintVertical_bias="0.764"
+            android:tag = "@string/bt_left"
+            android:onClick="onClick"/>
 
         <Button
             android:id="@+id/btn_right"
@@ -311,7 +330,9 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.863"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/btn_up" />
+            app:layout_constraintTop_toTopOf="@+id/btn_up"
+            android:tag = "@string/bt_right"
+            android:onClick="onClick"/>
 
         <TextView
             android:id="@+id/txt_manual"
