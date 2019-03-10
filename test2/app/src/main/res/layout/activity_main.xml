@@ -51,8 +51,8 @@
                 android:id="@+id/btn_ConnectBlueTooth"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/title_connecting"
-                android:onClick="onClick"/>
+                android:onClick="onClick"
+                android:text="@string/button_bt" />
 
             <ScrollView
                 android:layout_width="match_parent"
@@ -76,10 +76,11 @@
                     android:layout_width="10dp"
                     android:layout_height="10dp"
                     android:layout_gravity="center"
+                    android:paddingRight="5dp"
                     android:background="@drawable/circle" />
 
                 <TextView
-                    android:id="@+id/connected"
+                    android:id="@+id/tv_bluetooth"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/not_connected" />
@@ -91,7 +92,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="25dp"
-                android:text="Temperature:  25 &#176; C" />
+                android:text="@string/status_temperature" />
 
 
             <TextView
@@ -99,7 +100,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="25dp"
-                android:text="Humidity:  60%" />
+                android:text="@string/status_humidity" />
+
+            <TextView
+                android:id="@+id/surface"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
+                android:text="@string/status_surface" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -157,6 +165,7 @@
                         android:text="Manual"
                         android:textColor="@color/white"
                         android:tag = "@string/bt_manual"
+                        android:checked="true"
                         android:onClick="onClick"/>
 
                     <RadioButton
@@ -207,7 +216,8 @@
                         android:text="Hot"
                         android:textColor="@color/white"
                         android:tag = "@string/bt_hot"
-                        android:onClick="onClick"/>
+                        android:onClick="onClick"
+                        android:checked="true"/>
 
                     <RadioButton
                         android:id="@+id/mode_cold"
@@ -253,20 +263,21 @@
                     android:onClick="onClick"/>/>
 
                 <include
+                    android:id="@+id/btn_stop_speed"
                     layout="@layout/circle_num"
-                    android:id="@+id/text_circle"
                     android:layout_width="36dp"
-                    android:layout_weight="1"
                     android:layout_height="36dp"
+                    android:layout_marginRight="6dp"
                     android:layout_toRightOf="@+id/btn_dec"
-                    android:layout_marginRight="6dp"></include>
+                    android:layout_weight="1"
+                    android:onClick="onClick"></include>
 
                 <Button
                     android:id="@+id/btn_inc"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:layout_marginLeft="0dp"
-                    android:layout_toRightOf="@+id/text_circle"
+                    android:layout_toRightOf="@+id/btn_stop_speed"
                     android:layout_weight="1"
                     android:background="@drawable/ic_add_circle_black_24dp"
                     android:tag = "@string/bt_speed_up"

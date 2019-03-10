@@ -8,8 +8,9 @@
     <string name="not_connected">You are not connected to a device</string>
     <string name="connected">FanMe Connected</string>
     <string name="bt_not_enabled_leaving">Bluetooth was not enabled. Leaving Bluetooth Chat.</string>
-    <string name="title_connecting">connecting...</string>
-    <string name="title_not_connected">not connected</string>
+    <string name="title_connecting"> Connecting...</string>
+    <string name="title_not_connected"> Not connected</string>
+    <string name="button_bt"> Connected</string>
 
     <!--  DeviceListActivity -->
     <string name="scanning">scanning for devices...</string>
@@ -26,8 +27,12 @@
     <string name="discoverable">Make discoverable</string>
 
     <!-- Status Strings -->
-    <string name="temperature">Temperature: %1$d &#176; C</string>
-    %1$d
+    <string name="status_temperature">Ambient Temperature: %1$s &#176; C</string>
+    <string name="status_humidity">Humidity: %1$s &#37;</string>
+    <string name="status_surface">Surface Temperature: %1$s &#176; C</string>
+    <string name="status_speed">0</string>
+    <string name="status_tracking">Tracking Mode: %1$s</string>
+    <string name="status_heating">Temperature: %1$s </string>
 
     <!-- Button Transmit Bluetooth Messages Used in tags-->
     <string name="bt_pair">pair</string>
@@ -46,5 +51,6 @@
     <string name="bt_speed_up">inc</string>
     <string name="bt_speed_down">dec</string>
     <string name="bt_stop">stop</string>
+
 
 </resources>

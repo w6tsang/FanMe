@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -26,6 +27,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.util.Set;
 import java.util.UUID;
 
@@ -40,8 +43,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Set<BluetoothDevice> pairedDevices;
     boolean isItemSelected;
 
+    //-------------- Views ----------------------------------
+
+
     TextView humid;
 
+
+
+
+    //-------------- Views ----------------------------------
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // "random" unique identifier
 
     String address;
@@ -165,15 +175,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // For the buttons
     @Override
     public void onClick(View v) {
-
+        String btMsg;
         switch (v.getId()) {
             case R.id.btn_ConnectBlueTooth:
+                //opens device selection dialogue
                 showBTDialog();
                 break;
+            case R.id.btn_stop_speed:
+                // sets speed to 0
+                btMsg = "stop";
+                sendBTMessage(btMsg);
 
+                break;
             default:
                 //sends message with their respective tag
-                String btMsg = v.getTag().toString();
+                btMsg = v.getTag().toString();
                 sendBTMessage(btMsg);
                 break;
         }
@@ -240,12 +256,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Updates the status on the action bar.
+     * Updates the status of Bluetooth Connection.
      *
      * @param resId a string resource ID
      */
     private void setStatus(int resId) {
+        // updates Bluetooth connection status
+        TextView tvConnected = (TextView)findViewById(R.id.tv_bluetooth);
+        tvConnected.setText(resId);
 
+        //update status circle
+        TextView statusCircle = (TextView) findViewById(R.id.statuscircle);
+        if (resId == R.string.connected) {
+            statusCircle.setBackgroundColor(Color.GREEN);
+        }
+        else{
+            statusCircle.setBackgroundColor(Color.RED);
+        }
     }
 
 
@@ -278,7 +305,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
+                    // Format of status: "#tempC+humidity+surface+speed+tracking+heat~"
+                    String readMsg = new String(readBuf);
+
+                    int endOfLineIndex = readMsg.indexOf("~");
+                    if (endOfLineIndex > 0) {
+                        if (readMsg.charAt(0) == '#'){
+                            String dataInPrint = readMsg.substring(1, endOfLineIndex);    // extract string
+                            String[] data = dataInPrint.split("+");
+
+                            // Temperature Text View
+                            updateStatus(R.id.temperature,getString(R.string.status_temperature, data[0]));
+                            updateStatus(R.id.humid,getString(R.string.status_humidity, data[1]));
+                            updateStatus(R.id.surface,getString(R.string.status_surface, data[2]));
+                            updateStatus(R.id.tv_speed,data[3]);
+                            updateStatus(R.id.temperature,getString(R.string.status_temperature, data[4]));
+
+                        }
+                    }
+
+
                     break;
+                case Constants.MESSAGE_DEVICE_NAME:
+                    // save the connected device's name
+                    mConnectedDeviceName = msg.getData().getString(Constants.DEVICE_NAME);
+                        Toast.makeText(getApplicationContext(), "Connected to "
+                                + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+                    break;
+                case Constants.MESSAAGE_STATUS:
+                    // updates
                 case Constants.MESSAGE_TOAST:
                         Toast.makeText(getApplicationContext(), msg.getData().getString(Constants.TOAST),
                                 Toast.LENGTH_SHORT).show();
@@ -287,20 +342,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
+    private void updateStatus(int resID, CharSequence data){
+        TextView tvStatus = (TextView)findViewById(resID);
+        tvStatus.setText(data);
+    }
+
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case REQUEST_CONNECT_DEVICE_SECURE:
-                // When DeviceListActivity returns with a device to connect
-                if (resultCode == Activity.RESULT_OK) {
-                    connectDevice(data, true);
-                }
-                break;
-            case REQUEST_CONNECT_DEVICE_INSECURE:
-                // When DeviceListActivity returns with a device to connect
-                if (resultCode == Activity.RESULT_OK) {
-                    connectDevice(data, false);
-                }
-                break;
             case REQUEST_ENABLE_BT:
                 // When the request to enable Bluetooth returns
                 if (resultCode == Activity.RESULT_OK) {
