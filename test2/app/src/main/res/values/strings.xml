@@ -50,7 +50,7 @@
 
     <string name="bt_speed_up">inc</string>
     <string name="bt_speed_down">dec</string>
-    <string name="bt_stop">stop</string>
+    <string name="bt_stop">off</string>
 
 
 </resources>

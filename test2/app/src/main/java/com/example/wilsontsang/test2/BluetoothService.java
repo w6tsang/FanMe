@@ -493,7 +493,9 @@ public class BluetoothService {
                     // Read from the InputStream
                     bytes = mmInStream.read(buffer);
 
+                    String msg = new String(buffer,0,bytes);
                     // Send the obtained bytes to the UI Activity
+                    Log.d(TAG,msg);
                     mHandler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
                 } catch (IOException e) {

@@ -270,6 +270,7 @@
                     android:layout_marginRight="6dp"
                     android:layout_toRightOf="@+id/btn_dec"
                     android:layout_weight="1"
+                    android:tag = "@string/bt_stop"
                     android:onClick="onClick"></include>
 
                 <Button
