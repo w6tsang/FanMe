@@ -28,7 +28,7 @@
 
     <!-- Status Strings -->
     <string name="status_temperature">Ambient Temperature: %1$s &#176; C</string>
-    <string name="status_humidity">Humidity: %1$s &#37;</string>
+    <string name="status_humidity">Humidity: %1$s</string>
     <string name="status_surface">Surface Temperature: %1$s &#176; C</string>
     <string name="status_speed">0</string>
     <string name="status_tracking">Tracking Mode: %1$s</string>

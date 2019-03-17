@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     String address;
     String name;
+    int speed;
 
     private static final String TAG = "MainActivity";
 
@@ -87,6 +88,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        int speed = Integer.parseInt(getString(R.string.status_speed));
 
         //Check Bluetooth
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -181,10 +184,48 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //opens device selection dialogue
                 showBTDialog();
                 break;
-            case R.id.btn_stop_speed:
+            case R.id.tv_speed:
                 // sets speed to 0
-                btMsg = "stop";
+                btMsg = "off";
                 sendBTMessage(btMsg);
+                speed = 0;
+                btMsg = Integer.toString(speed);
+                updateStatus(R.id.tv_speed,btMsg);
+
+                break;
+
+            case R.id.btn_inc:
+                btMsg = v.getTag().toString();;
+                sendBTMessage(btMsg);
+
+                speed++;
+                if (speed > 4){
+                    speed = 5;
+                    btMsg = "5";
+                }
+                else{
+                    btMsg = Integer.toString(speed);
+                }
+
+                updateStatus(R.id.tv_speed,btMsg);
+
+                break;
+
+            case R.id.btn_dec:
+                // sets speed to 0
+                btMsg = v.getTag().toString();;
+                sendBTMessage(btMsg);
+
+                speed--;
+                if (speed < 1){
+                    speed = 0;
+                    btMsg = "0";
+                }
+                else{
+                    btMsg = Integer.toString(speed);
+                }
+
+                updateStatus(R.id.tv_speed,btMsg);
 
                 break;
             default:
@@ -313,6 +354,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (readMsg.charAt(0) == '#'){
                             String dataInPrint = readMsg.substring(1, endOfLineIndex);    // extract string
                             String[] data = dataInPrint.split("+");
+                            speed = Integer.parseInt(data[3]);
 
                             // Temperature Text View
                             updateStatus(R.id.temperature,getString(R.string.status_temperature, data[0]));
@@ -342,7 +384,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
-    private void updateStatus(int resID, CharSequence data){
+    private void updateStatus(int resID, String data){
         TextView tvStatus = (TextView)findViewById(resID);
         tvStatus.setText(data);
     }
