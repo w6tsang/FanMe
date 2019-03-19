@@ -14,14 +14,17 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -29,8 +32,11 @@ import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -51,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+
     //-------------- Views ----------------------------------
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // "random" unique identifier
 
@@ -65,11 +72,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private String mConnectedDeviceName = null;
 
-
+    ArrayList<String> btStrings = new ArrayList<String>();
     /**
      * String buffer for outgoing messages
      */
     private StringBuffer mOutStringBuffer;
+
+    /**
+     * String buffer for ingoing messages
+     */
+    private StringBuffer mInStringBuffer;
 
     /**
      * Local Bluetooth adapter
@@ -80,6 +92,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * Member object for the chat services
      */
     private BluetoothService mBTService = null;
+
+    private String lastMessage = "";
+    private Boolean messageAck = true;
+    private Boolean sentMessage = false;
+    private int retryCounter = 0;
+
+    private View manualViews;
+    private View connectedViews;
+    private View manualButtons;
+    private Boolean isManualMode = false;
+
+    private EditText et_setTemp;
 
 
     @Override
@@ -117,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (mBTService == null) {
             setupApplication();
         }
+        populateBtString(btStrings);
     }
 
     @Override
@@ -173,6 +198,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
+        mInStringBuffer = new StringBuffer("");
+
+        manualButtons = (View)findViewById(R.id.group_manual);
+        manualViews = (View)findViewById(R.id.view_speed);
+        connectedViews = (View)findViewById(R.id.view_connected);
+        et_setTemp = (EditText)findViewById(R.id.et_temp);
+
+        et_setTemp.setOnEditorActionListener(new EditText.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    String btMsg = v.getText().toString();
+                    int desiredTemp = Integer.parseInt(btMsg);
+
+                    //validates temp
+                    if(desiredTemp > 50){
+                        desiredTemp = 50;
+                    }
+                    if(desiredTemp < 0){
+                        desiredTemp = 0;
+                    }
+
+                    v.setText(Integer.toString(desiredTemp));
+
+                    sendBTMessage(Integer.toString(desiredTemp));
+                    return true;
+                }
+                return false;
+            }
+        });
+
     }
 
     // For the buttons
@@ -188,18 +244,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // sets speed to 0
                 btMsg = "off";
                 sendBTMessage(btMsg);
+                lastMessage = btMsg;
                 speed = 0;
                 btMsg = Integer.toString(speed);
                 updateStatus(R.id.tv_speed,btMsg);
-
+                sentMessage = true;
                 break;
 
             case R.id.btn_inc:
-                btMsg = v.getTag().toString();;
+                btMsg = v.getTag().toString();
                 sendBTMessage(btMsg);
+                lastMessage = btMsg;
 
                 speed++;
-                if (speed > 4){
+                if (speed > 5){
                     speed = 5;
                     btMsg = "5";
                 }
@@ -208,6 +266,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 updateStatus(R.id.tv_speed,btMsg);
+                sentMessage = true;
 
                 break;
 
@@ -215,6 +274,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // sets speed to 0
                 btMsg = v.getTag().toString();;
                 sendBTMessage(btMsg);
+                lastMessage = btMsg;
 
                 speed--;
                 if (speed < 1){
@@ -226,16 +286,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 updateStatus(R.id.tv_speed,btMsg);
+                sentMessage = true;
 
                 break;
             default:
                 //sends message with their respective tag
                 btMsg = v.getTag().toString();
                 sendBTMessage(btMsg);
+                lastMessage = btMsg;
+                sentMessage = true;
                 break;
         }
     }
 
+    private void populateBtString(ArrayList<String> btArray){
+        btArray.add(getString(R.string.bt_hot));
+        btArray.add(getString(R.string.bt_cold));
+        btArray.add(getString(R.string.bt_down));
+        btArray.add(getString(R.string.bt_right));
+        btArray.add(getString(R.string.bt_left));
+        btArray.add(getString(R.string.bt_up));
+        btArray.add(getString(R.string.bt_manual));
+        btArray.add(getString(R.string.bt_auto));
+        btArray.add(getString(R.string.bt_speed_down));
+        btArray.add(getString(R.string.bt_speed_up));
+        btArray.add(getString(R.string.bt_stop));
+    }
     // selecting BT device dialog
     public void showBTDialog() {
 
@@ -347,25 +423,128 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     // Format of status: "#tempC+humidity+surface+speed+tracking+heat~"
-                    String readMsg = new String(readBuf);
+                    String readMsg = new String(readBuf, 0,msg.arg1);
 
-                    int endOfLineIndex = readMsg.indexOf("~");
-                    if (endOfLineIndex > 0) {
-                        if (readMsg.charAt(0) == '#'){
-                            String dataInPrint = readMsg.substring(1, endOfLineIndex);    // extract string
-                            String[] data = dataInPrint.split("+");
+                    if (readMsg != null) {
+                        mInStringBuffer.append(readMsg); //string buffer for inc status
+                    }
+                    int begOfLineInfex = mInStringBuffer.indexOf("#");
+                    int endOfLineIndex = mInStringBuffer.indexOf("~");
+
+                    int begOfLineIndexAck = mInStringBuffer.indexOf("<");
+                    int endOfLineIndexAck = mInStringBuffer.indexOf(">");
+
+                    //mInStringBuffer.setLength(0);
+                    //mInStringBuffer.append("<bds>cvx  \n#26.00,22.00,29.68,5,0,0~ddd");
+
+
+                    Pattern regexStatus = Pattern.compile("#(.*?)~");
+                    Pattern regexAck = Pattern.compile("<(.*?)>");
+
+
+                    Log.d(TAG,"Buffer: " + mInStringBuffer.toString());
+                    Matcher matcherStatus = regexStatus.matcher(mInStringBuffer);
+                    Matcher matcherAck = regexAck.matcher(mInStringBuffer);
+                    //betweenString("<", ">", mInStringBuffer);
+                    if (matcherStatus.find()) {
+                        String dataInPrint = matcherStatus.group(1);    // extract string
+                        String[] data = dataInPrint.split(",");
+
+                        try{
                             speed = Integer.parseInt(data[3]);
 
                             // Temperature Text View
-                            updateStatus(R.id.temperature,getString(R.string.status_temperature, data[0]));
-                            updateStatus(R.id.humid,getString(R.string.status_humidity, data[1]));
-                            updateStatus(R.id.surface,getString(R.string.status_surface, data[2]));
-                            updateStatus(R.id.tv_speed,data[3]);
-                            updateStatus(R.id.temperature,getString(R.string.status_temperature, data[4]));
+                            updateStatus(R.id.temp, String.format(getString(R.string.status_temperature), data[0]));
+                            updateStatus(R.id.humid, String.format(getString(R.string.status_humidity), data[1] ));
+                            updateStatus(R.id.surface, String.format(getString(R.string.status_surface) , data[2] ));
+                            updateStatus(R.id.tv_speed, data[3]);
+
+
+                            if(data[4].equals("1") && !isManualMode){
+                                //manual mode
+                                toggleManualViews();
+
+                            }
+                            else if(data[4].equals("0") &&  isManualMode){
+                                //auto
+                                toggleManualViews();
+
+                            }
+                            //updateStatus(R.id.temperature,getString(R.string.status_temperature, data[4]));
+                            //manual mode 1
+                            //cooling mode 0
+
 
                         }
-                    }
+                        catch (Exception e){
+                            Log.d(TAG,"Parsing problem:\n" + mInStringBuffer.toString());
+                        }
+                        mInStringBuffer.setLength(0);
 
+                    }
+                    if (matcherAck.find()) {//acknowledge messages
+                        String dataInPrint = matcherAck.group(1);    // extract string
+                        Log.d(TAG,"Ack msg rec: "+dataInPrint);
+                        if(btStrings.contains(dataInPrint)) {
+                            lastMessage = "";
+                            messageAck = true;
+                            sentMessage = false;
+                            retryCounter = 0;
+                            Log.d(TAG, "Message Acknowledged: " + dataInPrint);
+                        }
+                        else{//message sent failure
+                            //sendBTMessage(lastMessage);
+                            messageAck = false;
+                            retryCounter++;
+                            Log.d(TAG, "Counter" + retryCounter);
+
+                        }
+                        if(retryCounter == 10){
+                            sentMessage = false;
+                            messageAck = false;
+                            retryCounter = 0;
+                            makeToast("Failed retry");
+                        }
+
+                        mInStringBuffer.setLength(0);
+                    }
+                    if (mInStringBuffer.length() > 50){//corrupt mesage
+                        mInStringBuffer.setLength(0);
+                        Log.d(TAG,"Corrupt Message");
+                    }
+               // mInStringBuffer.setLength(0);
+//                    else if( endOfLineIndexAck > 0 && sentMessage == true){//the Acknowledge messages
+//                        try{
+//                            String ackString = cleanString(mInStringBuffer.toString());
+//                            Log.d(TAG, mInStringBuffer.toString());
+//                            if(btStrings.contains(ackString)){
+//                                lastMessage = "";
+//                                messageAck = true;
+//                                sentMessage = false;
+//                                retryCounter = 0;
+//                                Log.d(TAG,"Message Acknowledged: "+mInStringBuffer.toString());
+//                                mInStringBuffer.delete(0, mInStringBuffer.length());
+//                            }
+//                            else{//message sent failure
+//                                sendBTMessage(lastMessage);
+//                                messageAck = false;
+//                                retryCounter++;
+//                                Log.d(TAG, "Counter" + retryCounter);
+//
+//                            }
+//                            if(retryCounter == 10){
+//                                sentMessage = false;
+//                                messageAck = false;
+//                                retryCounter = 0;
+//                                makeToast("Failed retry");
+//                                mInStringBuffer.delete(0, mInStringBuffer.length());
+//                            }
+//                        }
+//                        catch (Exception e){
+//                            Log.d(TAG, "Parsing failure : "+mInStringBuffer.toString());
+//                        }
+//
+//                    }
 
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
@@ -383,6 +562,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     };
+
+    private String betweenString(String beg, String end, String s){
+        return s.substring(s.indexOf(beg) + 1, s.indexOf(end));
+    }
+    //hides or unhides manual views
+    public void toggleView(View view){
+        if(view.getVisibility()==View.INVISIBLE){
+            view.setVisibility(View.VISIBLE);
+        }
+        else if(view.getVisibility()==View.VISIBLE){
+            view.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    //toggles bluetooth connceted views
+    private void toggleBluetoothViews(){
+
+    }
+
+    //toggle manual mode views
+    private void toggleManualViews(){
+
+    }
+
+    private void updateManualMode(){
+
+    }
+
+    private void updateStatusStrings(String[] dataStrings){
+        // Temperature Text View
+        updateStatus(R.id.temp, String.format(getString(R.string.status_temperature), dataStrings[0]));
+        updateStatus(R.id.humid, String.format(getString(R.string.status_humidity), dataStrings[1] ));
+        updateStatus(R.id.surface, String.format(getString(R.string.status_surface) , dataStrings[2] ));
+        updateStatus(R.id.tv_speed, dataStrings[3]);
+    }
+
+    private String cleanString(String str){
+        str = str.replaceAll("(\\r|\\n)", "");
+        return str;
+    }
 
     private void updateStatus(int resID, String data){
         TextView tvStatus = (TextView)findViewById(resID);

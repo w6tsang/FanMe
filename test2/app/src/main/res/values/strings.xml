@@ -51,6 +51,7 @@
     <string name="bt_speed_up">inc</string>
     <string name="bt_speed_down">dec</string>
     <string name="bt_stop">off</string>
+    <string name="bt_calibrate">calibrate</string>
 
 
 </resources>
