@@ -190,7 +190,7 @@
                             android:layout_weight="1"
                             android:background="@drawable/toggle_widget_background_auto"
                             android:button="@null"
-                            android:checked="true"
+
                             android:gravity="center"
                             android:onClick="onClick"
                             android:tag="@string/bt_manual"
@@ -207,6 +207,7 @@
                             android:layout_weight="1"
                             android:background="@drawable/toggle_widget_background_auto"
                             android:button="@null"
+                            android:checked="true"
                             android:gravity="center"
                             android:onClick="onClick"
                             android:tag="@string/bt_auto"
@@ -318,12 +319,6 @@
 
         </LinearLayout>
 
-        <android.support.constraint.Group
-            android:id="@+id/group_manual"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="visible"
-            app:constraint_referenced_ids="btn_right,btn_left" />
         <Button
             android:id="@+id/btn_up"
             android:layout_width="wrap_content"

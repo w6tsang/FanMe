@@ -26,12 +26,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.text.Format;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
@@ -53,10 +55,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     TextView humid;
-
-
-
-
 
     //-------------- Views ----------------------------------
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // "random" unique identifier
@@ -98,12 +96,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Boolean sentMessage = false;
     private int retryCounter = 0;
 
-    private View manualViews;
+    //manual views
+    private Button manualInc;
+    private Button manualDec;
+
+    private View manualUp;
+    private View manualDown;
+    private View manualLeft;
+    private View manualRight;
+
+    //text
+    private View manualTxt;
+    //--manual views
+
     private View connectedViews;
-    private View manualButtons;
-    private Boolean isManualMode = false;
+
+    private RadioGroup manualToggleView;
 
     private EditText et_setTemp;
+
+    private String[] defaultData = {"26.00","25.30","30.12","3","0","0"};
 
 
     @Override
@@ -142,6 +154,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             setupApplication();
         }
         populateBtString(btStrings);
+        validateStatus(defaultData);
     }
 
     @Override
@@ -200,11 +213,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mOutStringBuffer = new StringBuffer("");
         mInStringBuffer = new StringBuffer("");
 
-        manualButtons = (View)findViewById(R.id.group_manual);
-        manualViews = (View)findViewById(R.id.view_speed);
+        setupManualViews();
+
         connectedViews = (View)findViewById(R.id.view_connected);
         et_setTemp = (EditText)findViewById(R.id.et_temp);
 
+        manualToggleView = (RadioGroup)findViewById(R.id.toggle2);
         et_setTemp.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -229,6 +243,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+        updateManualMode(false);
+    }
+
+    private void setupManualViews(){
+        //direction
+        manualUp = (View)findViewById(R.id.btn_up);
+        manualDown = (View)findViewById(R.id.btn_down);
+        manualLeft = (View)findViewById(R.id.btn_left);
+        manualRight = (View)findViewById(R.id.btn_right);
+
+        //text
+        manualTxt = (View)findViewById(R.id.txt_manual);
+
+        //speed
+        manualDec = (Button) findViewById(R.id.btn_dec);
+        manualInc = (Button) findViewById(R.id.btn_inc);
     }
 
     // For the buttons
@@ -289,6 +319,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 sentMessage = true;
 
                 break;
+            case R.id.btn_Manual:
+                btMsg = v.getTag().toString();;
+                sendBTMessage(btMsg);
+                updateManualMode(true);
+
+                break;
+            case R.id.btn_Auto:
+                btMsg = v.getTag().toString();;
+                sendBTMessage(btMsg);
+                updateManualMode(false);
+
             default:
                 //sends message with their respective tag
                 btMsg = v.getTag().toString();
@@ -311,6 +352,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btArray.add(getString(R.string.bt_speed_down));
         btArray.add(getString(R.string.bt_speed_up));
         btArray.add(getString(R.string.bt_stop));
+        btArray.add(getString(R.string.bt_calibrate));
     }
     // selecting BT device dialog
     public void showBTDialog() {
@@ -445,57 +487,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Log.d(TAG,"Buffer: " + mInStringBuffer.toString());
                     Matcher matcherStatus = regexStatus.matcher(mInStringBuffer);
                     Matcher matcherAck = regexAck.matcher(mInStringBuffer);
-                    //betweenString("<", ">", mInStringBuffer);
                     if (matcherStatus.find()) {
                         String dataInPrint = matcherStatus.group(1);    // extract string
                         String[] data = dataInPrint.split(",");
 
-                        try{
-                            speed = Integer.parseInt(data[3]);
+                        try {
+                                validateStatus(data);
 
-                            // Temperature Text View
-                            updateStatus(R.id.temp, String.format(getString(R.string.status_temperature), data[0]));
-                            updateStatus(R.id.humid, String.format(getString(R.string.status_humidity), data[1] ));
-                            updateStatus(R.id.surface, String.format(getString(R.string.status_surface) , data[2] ));
-                            updateStatus(R.id.tv_speed, data[3]);
-
-
-                            if(data[4].equals("1") && !isManualMode){
-                                //manual mode
-                                toggleManualViews();
-
+                            } catch (Exception e) {
+                                Log.d(TAG, "Parsing problem:\n" + mInStringBuffer.toString());
                             }
-                            else if(data[4].equals("0") &&  isManualMode){
-                                //auto
-                                toggleManualViews();
-
-                            }
-                            //updateStatus(R.id.temperature,getString(R.string.status_temperature, data[4]));
-                            //manual mode 1
-                            //cooling mode 0
-
-
-                        }
-                        catch (Exception e){
-                            Log.d(TAG,"Parsing problem:\n" + mInStringBuffer.toString());
-                        }
                         mInStringBuffer.setLength(0);
 
                     }
                     if (matcherAck.find()) {//acknowledge messages
                         String dataInPrint = matcherAck.group(1);    // extract string
                         Log.d(TAG,"Ack msg rec: "+dataInPrint);
-                        if(btStrings.contains(dataInPrint)) {
+                        if(btStrings.contains(dataInPrint) || tryParseInt(dataInPrint)) {
                             lastMessage = "";
                             messageAck = true;
                             sentMessage = false;
                             retryCounter = 0;
+                            makeToast("Acknowledge: " + dataInPrint);
                             Log.d(TAG, "Message Acknowledged: " + dataInPrint);
                         }
                         else{//message sent failure
-                            //sendBTMessage(lastMessage);
+                            sendBTMessage(lastMessage);
                             messageAck = false;
                             retryCounter++;
+                            makeToast("Trying Again: " + dataInPrint);
                             Log.d(TAG, "Counter" + retryCounter);
 
                         }
@@ -508,7 +528,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         mInStringBuffer.setLength(0);
                     }
-                    if (mInStringBuffer.length() > 50){//corrupt mesage
+                    if (mInStringBuffer.length() > 30){//corrupt mesage
                         mInStringBuffer.setLength(0);
                         Log.d(TAG,"Corrupt Message");
                     }
@@ -581,21 +601,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    //toggle manual mode views
-    private void toggleManualViews(){
+    //changes toggle from manual or auto
+    //1 is manual
+    //0 is auto
+    private void updateManualMode(boolean isManualMode){
+       if(isManualMode){//manual
+           manualToggleView.check(R.id.btn_Manual);
 
-    }
+           manualDec.setVisibility(View.VISIBLE);
+           manualInc.setVisibility(View.VISIBLE);
 
-    private void updateManualMode(){
+           manualDown.setVisibility(View.VISIBLE);
+           manualUp.setVisibility(View.VISIBLE);
+           manualLeft.setVisibility(View.VISIBLE);
+           manualRight.setVisibility(View.VISIBLE);
 
-    }
+           manualTxt.setVisibility(View.VISIBLE);
+       }
+       else{
+           manualToggleView.check(R.id.btn_Auto);
 
-    private void updateStatusStrings(String[] dataStrings){
-        // Temperature Text View
-        updateStatus(R.id.temp, String.format(getString(R.string.status_temperature), dataStrings[0]));
-        updateStatus(R.id.humid, String.format(getString(R.string.status_humidity), dataStrings[1] ));
-        updateStatus(R.id.surface, String.format(getString(R.string.status_surface) , dataStrings[2] ));
-        updateStatus(R.id.tv_speed, dataStrings[3]);
+           manualDec.setVisibility(View.INVISIBLE);
+           manualInc.setVisibility(View.INVISIBLE);
+
+           manualDown.setVisibility(View.INVISIBLE);
+           manualUp.setVisibility(View.INVISIBLE);
+           manualLeft.setVisibility(View.INVISIBLE);
+           manualRight.setVisibility(View.INVISIBLE);
+
+           manualTxt.setVisibility(View.INVISIBLE);
+       }
+
     }
 
     private String cleanString(String str){
@@ -625,6 +661,83 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    //validates status updates and discard corrupted data
+    //Format of status: "#tempC+humidity+surface+speed+tracking+heat~"
+    private void validateStatus(String[] data){
+
+        // ambient temp
+        if(tryParseDouble(data[0])){
+            double tempData = Double.parseDouble(data[0]) ;
+            if( tempData >=10 && tempData <= 100){
+                updateStatus(R.id.temp, String.format(getString(R.string.status_temperature), data[0]));
+            }
+            //invalid data
+        }
+
+        //humidity
+        if(tryParseDouble(data[1])){
+            double humidData = Double.parseDouble(data[1]) ;
+            if( humidData >=5 && humidData <= 100){
+                updateStatus(R.id.humid, String.format(getString(R.string.status_humidity), data[1]));
+            }
+            //invalid data
+        }
+
+        //surface temp
+        if(tryParseDouble(data[2])){
+            double surfTempData = Double.parseDouble(data[2]) ;
+            if( surfTempData >=10 && surfTempData <= 100){
+                updateStatus(R.id.surface, String.format(getString(R.string.status_surface), data[2]));
+            }
+            //invalid data
+        }
+
+        //tracking speed
+        if(tryParseInt(data[3])){
+            int speedStatus = Integer.parseInt(data[3]) ;
+            if( speedStatus >=0 && speedStatus <= 5){
+                speed = Integer.parseInt(data[3]);
+                updateStatus(R.id.tv_speed, data[3]);
+            }
+            //invalid data
+        }
+
+        //tracking mode man/auto
+        if(tryParseInt(data[4])){
+            int mode = Integer.parseInt(data[4]) ;
+            if( mode >= 0 && mode <= 1){
+
+                //changes the displayed of the views
+                if (data[4].equals("1")) {
+                    //manual mode
+                    updateManualMode(true);
+                } else if (data[4].equals("0")) {
+                    //auto
+                    updateManualMode(false);
+                }
+            }
+            //invalid data
+        }
+
+    }
+
+    boolean tryParseInt(String value) {
+        try {
+            Integer.parseInt(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    boolean tryParseDouble(String value) {
+        try {
+            Double.parseDouble(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
     /**
      * Establish connection with other device
      *

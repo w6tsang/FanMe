@@ -515,7 +515,7 @@ public class BluetoothService {
             try {
                 mmOutStream.write(buffer);
                 mmOutStream.flush();
-                Thread.sleep(5);
+                Thread.sleep(100);
 
 
                 // Share the sent message back to the UI Activity

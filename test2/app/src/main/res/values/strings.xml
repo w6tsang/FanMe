@@ -10,7 +10,7 @@
     <string name="bt_not_enabled_leaving">Bluetooth was not enabled. Leaving Bluetooth Chat.</string>
     <string name="title_connecting"> Connecting...</string>
     <string name="title_not_connected"> Not connected</string>
-    <string name="button_bt"> Connected</string>
+    <string name="button_bt"> Connect To Fan</string>
 
     <!--  DeviceListActivity -->
     <string name="scanning">scanning for devices...</string>
@@ -37,13 +37,13 @@
     <!-- Button Transmit Bluetooth Messages Used in tags-->
     <string name="bt_pair">pair</string>
 
-    <string name="bt_left">left</string>
-    <string name="bt_right">right</string>
+    <string name="bt_left">lef</string>
+    <string name="bt_right">rig</string>
     <string name="bt_down">down</string>
     <string name="bt_up">up</string>
 
-    <string name="bt_manual">manual</string>
-    <string name="bt_auto">auto</string>
+    <string name="bt_manual">man</string>
+    <string name="bt_auto">aut</string>
 
     <string name="bt_hot">hot</string>
     <string name="bt_cold">cold</string>
@@ -51,7 +51,7 @@
     <string name="bt_speed_up">inc</string>
     <string name="bt_speed_down">dec</string>
     <string name="bt_stop">off</string>
-    <string name="bt_calibrate">calibrate</string>
+    <string name="bt_calibrate">cal</string>
 
 
 </resources>
